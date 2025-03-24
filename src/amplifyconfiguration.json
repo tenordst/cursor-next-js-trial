@@ -1,0 +1,8 @@
+{
+  "aws_project_region": "eu-central-1",
+  "aws_cognito_region": "eu-central-1",
+  "aws_user_pools_id": "eu-central-1_KKFNZMjih",
+  "aws_user_pools_web_client_id": "2d8rr9j7b4b4nomfaui6rkufnt",
+  "aws_mandatory_sign_in": "enable",
+  "oauth": {}
+} 

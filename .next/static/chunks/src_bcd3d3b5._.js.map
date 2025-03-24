@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 12, "column": 0}, "map": {"version":3,"sources":["file:///Users/teronordstrom/projects/cursor-next-js-trial/src/lib/amplify.ts"],"sourcesContent":["import { Amplify } from 'aws-amplify';\nimport config from '@/amplifyconfiguration.json';\n\nAmplify.configure(config, { ssr: true }); "],"names":[],"mappings":";AAAA;AACA;;;AAEA,+MAAA,CAAA,UAAO,CAAC,SAAS,CAAC,mGAAA,CAAA,UAAM,EAAE;IAAE,KAAK;AAAK","debugId":null}},
+    {"offset": {"line": 29, "column": 0}, "map": {"version":3,"sources":["file:///Users/teronordstrom/projects/cursor-next-js-trial/src/app/providers.tsx"],"sourcesContent":["'use client';\n\nimport { ReactNode, useEffect } from 'react';\n\n// Import the Amplify configuration\nimport '@/lib/amplify';\n\ninterface ProvidersProps {\n  children: ReactNode;\n}\n\nexport function Providers({ children }: ProvidersProps) {\n  return <>{children}</>;\n} "],"names":[],"mappings":";;;;AAIA,mCAAmC;AACnC;AALA;;;AAWO,SAAS,UAAU,EAAE,QAAQ,EAAkB;IACpD,qBAAO;kBAAG;;AACZ;KAFgB","debugId":null}}]
+}
