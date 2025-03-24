@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { signIn, signOut, getCurrentUser, updateUserAttributes, type AuthUser } from 'aws-amplify/auth';
+import { signIn, signOut, getCurrentUser, updateUserAttributes, fetchUserAttributes, type AuthUser, type UserAttributeKey } from 'aws-amplify/auth';
 import { useRouter } from 'next/navigation';
 
 interface UseAuthReturn {
   user: AuthUser | null;
+  userAttributes: Partial<Record<UserAttributeKey, string>> | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (attributes: { given_name?: string; family_name?: string }) => Promise<void>;
@@ -13,24 +14,28 @@ interface UseAuthReturn {
 
 export const useAuth = (): UseAuthReturn => {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [userAttributes, setUserAttributes] = useState<Partial<Record<UserAttributeKey, string>> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-
-  useEffect(() => {
-    checkAuthState();
-  }, []);
 
   const checkAuthState = async () => {
     try {
       const user = await getCurrentUser();
       setUser(user);
+      const attributes = await fetchUserAttributes();
+      setUserAttributes(attributes);
     } catch (error) {
       setUser(null);
+      setUserAttributes(null);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    checkAuthState();
+  }, []);
 
   const handleSignIn = async (email: string, password: string) => {
     setLoading(true);
@@ -40,6 +45,8 @@ export const useAuth = (): UseAuthReturn => {
       if (isSignedIn) {
         const user = await getCurrentUser();
         setUser(user);
+        const attributes = await fetchUserAttributes();
+        setUserAttributes(attributes);
         router.push('/dashboard');
       }
     } catch (error) {
@@ -59,6 +66,7 @@ export const useAuth = (): UseAuthReturn => {
     try {
       await signOut({ global: true });
       setUser(null);
+      setUserAttributes(null);
       router.push('/login');
     } catch (error) {
       if (error instanceof Error) {
@@ -81,6 +89,8 @@ export const useAuth = (): UseAuthReturn => {
       // Refresh user data
       const updatedUser = await getCurrentUser();
       setUser(updatedUser);
+      const updatedAttributes = await fetchUserAttributes();
+      setUserAttributes(updatedAttributes);
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -95,6 +105,7 @@ export const useAuth = (): UseAuthReturn => {
 
   return {
     user,
+    userAttributes,
     signIn: handleSignIn,
     signOut: handleSignOut,
     updateProfile: handleUpdateProfile,

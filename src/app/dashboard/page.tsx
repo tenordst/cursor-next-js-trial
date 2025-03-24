@@ -3,10 +3,37 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { FiUser, FiMail, FiLogOut, FiEdit2, FiCheck, FiX } from 'react-icons/fi';
+import type { AuthUser } from '@/types/auth';
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
+  TextField,
+  Paper,
+  Grid,
+  CircularProgress,
+  IconButton,
+  AppBar,
+  Toolbar,
+  Card,
+  CardContent,
+  Divider,
+} from '@mui/material';
+import {
+  Person as PersonIcon,
+  Email as EmailIcon,
+  Logout as LogoutIcon,
+  Edit as EditIcon,
+  Check as CheckIcon,
+  Close as CloseIcon,
+  Fingerprint as FingerprintIcon,
+  AccessTime as AccessTimeIcon,
+  Security as SecurityIcon,
+} from '@mui/icons-material';
 
 export default function DashboardPage() {
-  const { user, signOut, updateProfile, loading: authLoading, error } = useAuth();
+  const { user, userAttributes, signOut, updateProfile, loading: authLoading, error } = useAuth();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState('');
@@ -19,16 +46,17 @@ export default function DashboardPage() {
       router.replace('/login');
     }
     // Initialize form values when user data is available
-    if (user) {
-      setFirstName(user.attributes?.given_name || '');
-      setLastName(user.attributes?.family_name || '');
+    if (userAttributes) {
+      setFirstName(userAttributes.given_name || '');
+      setLastName(userAttributes.family_name || '');
     }
-  }, [user, authLoading, router]);
+  }, [user, userAttributes, authLoading, router]);
 
   const handleSignOut = async () => {
     try {
       setIsSigningOut(true);
       await signOut();
+      router.replace('/login');
     } catch (error) {
       console.error('Error signing out:', error);
     } finally {
@@ -52,19 +80,24 @@ export default function DashboardPage() {
   };
 
   const handleCancelEdit = () => {
-    setFirstName(user?.attributes?.given_name || '');
-    setLastName(user?.attributes?.family_name || '');
+    setFirstName(userAttributes?.given_name || '');
+    setLastName(userAttributes?.family_name || '');
     setIsEditing(false);
   };
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: 'grey.50',
+        }}
+      >
+        <CircularProgress />
+      </Box>
     );
   }
 
@@ -73,164 +106,166 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex-shrink-0">
-              <h1 className="text-xl font-semibold text-indigo-600">Dashboard</h1>
-            </div>
-            <div className="flex items-center">
-              <button
-                onClick={handleSignOut}
-                disabled={isSigningOut}
-                className={`flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-md transition-colors duration-200 ${
-                  isSigningOut ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                <FiLogOut className="mr-2 h-4 w-4" />
-                {isSigningOut ? 'Signing out...' : 'Sign Out'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
+      <AppBar position="static" color="default" elevation={1}>
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'primary.main' }}>
+            Dashboard
+          </Typography>
+          <Button
+            color="inherit"
+            startIcon={<LogoutIcon />}
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+          >
+            {isSigningOut ? 'Signing out...' : 'Sign out'}
+          </Button>
+        </Toolbar>
+      </AppBar>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium text-gray-900">User Profile</h2>
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Paper elevation={0} sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6">User Profile</Typography>
                 {!isEditing && (
-                  <button
+                  <Button
+                    startIcon={<EditIcon />}
                     onClick={() => setIsEditing(true)}
-                    className="flex items-center text-sm text-indigo-600 hover:text-indigo-500"
+                    color="primary"
                   >
-                    <FiEdit2 className="mr-1 h-4 w-4" />
                     Edit Profile
-                  </button>
+                  </Button>
                 )}
-              </div>
-              
+              </Box>
+
               {error && (
-                <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-md">
+                <Typography color="error" sx={{ mb: 2 }}>
                   {error}
-                </div>
+                </Typography>
               )}
 
-              <div className="space-y-4">
-                <div className="flex items-center text-gray-700">
-                  <FiUser className="h-5 w-5 mr-2" />
-                  {isEditing ? (
-                    <div className="flex-1 space-y-3">
-                      <div>
-                        <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                          First Name
-                        </label>
-                        <input
-                          type="text"
-                          id="firstName"
-                          value={firstName}
-                          onChange={(e) => setFirstName(e.target.value)}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                          disabled={isSaving}
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                          Last Name
-                        </label>
-                        <input
-                          type="text"
-                          id="lastName"
-                          value={lastName}
-                          onChange={(e) => setLastName(e.target.value)}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                          disabled={isSaving}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <span>
-                      Name: {user.attributes?.given_name || 'Not set'} {user.attributes?.family_name || ''}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center text-gray-700">
-                  <FiMail className="h-5 w-5 mr-2" />
-                  <span>Email: {user.signInDetails?.loginId}</span>
-                </div>
-                <div className="flex items-center text-gray-700">
-                  <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                  </svg>
-                  <span>User ID: {user.userId}</span>
-                </div>
-              </div>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <PersonIcon color="action" />
+                    {isEditing ? (
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="First Name"
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            disabled={isSaving}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Last Name"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            disabled={isSaving}
+                          />
+                        </Grid>
+                      </Grid>
+                    ) : (
+                      <Typography>
+                        Name: {userAttributes?.given_name || 'Not set'} {userAttributes?.family_name || ''}
+                      </Typography>
+                    )}
+                  </Box>
+                </Grid>
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <EmailIcon color="action" />
+                    <Typography>Email: {userAttributes?.email || user.signInDetails?.loginId}</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <FingerprintIcon color="action" />
+                    <Typography>User ID: {user.userId}</Typography>
+                  </Box>
+                </Grid>
+              </Grid>
 
               {isEditing && (
-                <div className="mt-4 flex justify-end space-x-3">
-                  <button
+                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<CloseIcon />}
                     onClick={handleCancelEdit}
                     disabled={isSaving}
-                    className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
-                    <FiX className="mr-2 h-4 w-4" />
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="contained"
+                    startIcon={isSaving ? <CircularProgress size={20} /> : <CheckIcon />}
                     onClick={handleSaveProfile}
                     disabled={isSaving}
-                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
-                    <FiCheck className="mr-2 h-4 w-4" />
                     {isSaving ? 'Saving...' : 'Save Changes'}
-                  </button>
-                </div>
+                  </Button>
+                </Box>
               )}
-            </div>
-          </div>
+            </Paper>
+          </Grid>
 
-          <div className="mt-6 bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h2>
-              <div className="border rounded-md">
-                <div className="px-4 py-3 border-b">
-                  <p className="text-sm text-gray-600">
+          <Grid item xs={12}>
+            <Paper elevation={0} sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 3 }}>
+                Recent Activity
+              </Typography>
+              <Box sx={{ border: 1, borderColor: 'divider', borderRadius: 1 }}>
+                <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                  <Typography variant="body2" color="text.secondary">
                     Last sign in: {new Date().toLocaleString()}
-                  </p>
-                </div>
-                <div className="px-4 py-3">
-                  <p className="text-sm text-gray-600">
+                  </Typography>
+                </Box>
+                <Box sx={{ p: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
                     Authentication method: {user.signInDetails?.authFlowType || 'Email and Password'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+                  </Typography>
+                </Box>
+              </Box>
+            </Paper>
+          </Grid>
 
-          <div className="mt-6 bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <button 
-                  disabled={isSigningOut}
-                  className="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors duration-200"
-                >
-                  Update Profile
-                </button>
-                <button 
-                  disabled={isSigningOut}
-                  className="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors duration-200"
-                >
-                  Change Password
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+          <Grid item xs={12}>
+            <Paper elevation={0} sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 3 }}>
+                Quick Actions
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    disabled={isSigningOut}
+                    startIcon={<PersonIcon />}
+                  >
+                    Update Profile
+                  </Button>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    disabled={isSigningOut}
+                    startIcon={<SecurityIcon />}
+                  >
+                    Change Password
+                  </Button>
+                </Grid>
+              </Grid>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
   );
 } 
